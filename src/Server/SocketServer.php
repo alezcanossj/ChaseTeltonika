@@ -88,11 +88,19 @@ class SocketServer
                     //We get the last part
                     else {
                         $hexDataGPS .= $data;
+                        $archivo = fopen('log.txt', 'a');
 
+                        $informacion_recibida = $hexDataGPS;
+
+                       
+
+                        // Cerrar el archivo
+                     
                         echo "Got a complete AVLMessage:\n";
                         echo $hexDataGPS;
                         echo "\n";
-
+                        // Escribir la información en el archivo
+                        fwrite($archivo, "Hexadecimal: ".$informacion_recibida."\n" . PHP_EOL);
                         //We decode the message
                         $decoder = new TeltonikaDecoderImp($hexDataGPS, $imei);
                         $AVLArray = $decoder->getArrayOfAllData();
@@ -100,19 +108,20 @@ class SocketServer
                         //Show output
                         echo json_encode($AVLArray);
                         echo "\n";
-
+                        fwrite($archivo, "Array Formateado: ".$AVLArray ."\n". PHP_EOL);
 
                         $numerOfElementsReceived = $decoder->getNumberOfElements();
                         echo "Elements received: ".$numerOfElementsReceived."\n";
-
+                        fwrite($archivo, "Numero de elementos recibido: ".$AVLArray ."\n". PHP_EOL);
                         foreach ($AVLArray as $AVLElement) {
                             $this->dataBase->storeDataFromDevice($AVLElement);
                         }
                         echo "Data saved into the database"."\n";
-
+                        fwrite($archivo, "Se guardo en la base de datos: "."\n". PHP_EOL);
                         //Send the response to server with the number of records we got (4 bytes integer)
                         $connection->write(pack('N', $numerOfElementsReceived));
                         //$connection->write($numerOfElementsReceived);
+                        fclose($archivo);
                     }
                 }
 
