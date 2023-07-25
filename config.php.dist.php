@@ -8,8 +8,8 @@
 
 class Conf
 {
-    const host = '127.0.0.1';
-    const port = '3306';
+    const host = '88.198.45.251';
+    const port = '21328';
     const db_user = 'root';
     const db_pass = 'ale2015xD';
     const db_name = 'teltonika_gps';
