@@ -124,7 +124,7 @@ class AVLData implements \JsonSerializable
     public function jsonSerialize(): mixed
     {
         return [
-            'imei' => $this->getImei(),
+            'imei' => $this->getImei()->getImeiNumber(),
             'timestamp' => $this->getTimestamp(),
             'datetime' => $this->getDateTime(),
             'priority' => $this->getPriority(),
