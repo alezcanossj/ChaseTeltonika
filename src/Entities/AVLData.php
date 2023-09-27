@@ -121,17 +121,15 @@ class AVLData implements \JsonSerializable
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
-        return
-            [
-                'imei' => $this->getImei(),
-                'timestamp'   => $this->getTimestamp(),
-                'datetime'   => $this->getDateTime(),
-                'priority'   => $this->getPriority(),
-                'gpsdata'   => $this->getGpsData(),
-                'iodata'   => $this->getIOData(),
-            ];
-
+        return [
+            'imei' => $this->getImei(),
+            'timestamp' => $this->getTimestamp(),
+            'datetime' => $this->getDateTime(),
+            'priority' => $this->getPriority(),
+            'gpsdata' => $this->getGpsData(),
+            'iodata' => $this->getIOData(),
+        ];
     }
 }

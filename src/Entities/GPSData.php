@@ -143,17 +143,16 @@ class GPSData implements \JsonSerializable
      * which is a value of any type other than a resource.
      * @since 5.4.0
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
-        return
-            [
-                'longitude'   => $this->getLongitude(),
-                'latitude'   => $this->getLatitude(),
-                'altitude'   => $this->getAltitude(),
-                'angle'   => $this->getAngle(),
-                'satellites'   => $this->getSatellites(),
-                'speed'   => $this->getSpeed(),
-            ];
+        return [
+            'longitude' => $this->getLongitude(),
+            'latitude' => $this->getLatitude(),
+            'altitude' => $this->getAltitude(),
+            'angle' => $this->getAngle(),
+            'satellites' => $this->getSatellites(),
+            'speed' => $this->getSpeed(),
+        ];
     }
 
     private function coordinateNegative(float $coordinate): bool
