@@ -42,7 +42,7 @@ class SocketServer
         $socket = new \React\Socket\Server($this->host.":".$this->port, $loop);
 
         $socket->on('connection', function(ConnectionInterface $connection){
-
+        $geofenceCoordinatesArray = $this->dataBase->getGeofences();
             //We nget on two scenarios:
             //1. We get IMEI, which we decode, we can even valid if it's correct, and then we send to the device a hex confirmation "\x01"
             //2. We start getting AVL Data in two ways
@@ -56,7 +56,7 @@ class SocketServer
             $imei = "";
 
             //We set a react event for every time we get data on our socket.
-            $connection->on('data', function($data) use ($connection, &$hexDataGPS, &$imei){
+            $connection->on('data', function($data) use ($connection, &$hexDataGPS, &$imei, &$geofenceCoordinatesArray){
 
                 //If we get a 17 characters string it means we are getting IMEI number, we have to decode it, check IMEI and send confirmation
                 if(strlen($data) == 17) {
@@ -114,7 +114,7 @@ class SocketServer
                         echo "Elements received: ".$numerOfElementsReceived."\n";
                         fwrite($archivo, "Numero de elementos recibido: ".$AVLArray ."\n". PHP_EOL);
                         foreach ($AVLArray as $AVLElement) {
-                            $this->dataBase->storeDataFromDevice($AVLElement);
+                            $this->dataBase->storeDataFromDevice($AVLElement,$geofenceCoordinatesArray);
                         }
                         echo "Data saved into the database"."\n";
                         fwrite($archivo, "Se guardo en la base de datos: "."\n". PHP_EOL);
