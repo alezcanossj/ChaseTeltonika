@@ -127,12 +127,12 @@ class DataStore
             //SI EXISTE UN VEHICULO CON ESE DISPOSITIVO
             if (!$car->checkIfCarExists($AVLElement->getImei()->getImeiNumber() )) {
                   // El vehículo no existe, crea un nuevo registro
-                  $car->createCar($AVLElement->getImei()->getImeiNumber(), "Default", "Default", "123-abc", 1);
+                  $car->createCar($AVLElement->getImei()->getImeiNumber(), "Default", "Default", "123-abc", 2);
             }
         } else {
             //NO EXISTE EL DISPOSITIVO NI EL VEHICULO
             $device->saveDevice($AVLElement->getImei()->getImeiNumber(),"-",0);
-            $car->createCar($AVLElement->getImei()->getImeiNumber(), "Default", "Default", "123-abc", 1);
+            $car->createCar($AVLElement->getImei()->getImeiNumber(), "Default", "Default", "123-abc", 2);
         }
 
         //LUEGO DE VERIFICAR O CREAR SE INSERTA LOS DATOS DEL GPS
