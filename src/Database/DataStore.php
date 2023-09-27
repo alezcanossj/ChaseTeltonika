@@ -119,27 +119,27 @@ class DataStore
         $this->pointLocation = new pointLocation();
         $device = new  Device($this->dataBaseInstance);
         //VERIFICAR SI EXISTE EL DEVICE
-        $deviceExists = $device->checkIfImeiExists($AVLElement->getImei()->getImeiNumber());
+        $deviceExists = $device->checkIfImeiExists($AVLElement->getImei());
         $car = new Car($this->dataBaseInstance);
 
         // SI EXISTE EL DISPOSITIVO
         if ($deviceExists) {
             //SI EXISTE UN VEHICULO CON ESE DISPOSITIVO
-            if (!$car->checkIfCarExists($AVLElement->getImei()->getImeiNumber())) {
+            if (!$car->checkIfCarExists($AVLElement->getImei())) {
                   // El vehículo no existe, crea un nuevo registro
-                  $car->createCar($AVLElement->getImei()->getImeiNumber(), "Default", "Default", "123-abc", 1);
+                  $car->createCar($AVLElement->getImei(), "Default", "Default", "123-abc", 1);
             }
         } else {
             //NO EXISTE EL DISPOSITIVO NI EL VEHICULO
-            $device->saveDevice($AVLElement->getImei()->getImeiNumber(),"-",0);
-            $car->createCar($AVLElement->getImei()->getImeiNumber(), "Default", "Default", "123-abc", 1);
+            $device->saveDevice($AVLElement->getImei(),"-",0);
+            $car->createCar($AVLElement->getImei(), "Default", "Default", "123-abc", 1);
         }
 
         //LUEGO DE VERIFICAR O CREAR SE INSERTA LOS DATOS DEL GPS
         $this->dataBaseInstance->insert(
             'gps_data_devices',
             array(
-                'imei' => $AVLElement->getImei()->getImeiNumber(),
+                'imei' => $AVLElement->getImei(),
                 'longitude' => $AVLElement->getGpsData()->getLongitude(),
                 'latitude' => $AVLElement->getGpsData()->getLatitude(),
                 'altitude' => $AVLElement->getGpsData()->getAltitude(),
@@ -153,7 +153,7 @@ class DataStore
         $points = $AVLElement->getGpsData()->getLongitude() . " " . $AVLElement->getGpsData()->getLatitude();
        
         // Verificar si el vehículo se encuentra dentro de una geocerca
-        $sql = "Select cars.id,cars.plate,geofence from cars left join car_in_geofence on car_in_geofence.car=cars.id where car_in_geofence.status=1 and cars.device = ".$AVLElement->getImei()->getImeiNumber()." limit 1";
+        $sql = "Select cars.id,cars.plate,geofence from cars left join car_in_geofence on car_in_geofence.car=cars.id where car_in_geofence.status=1 and cars.device = ".$AVLElement->getImei()." limit 1";
         $carInGeofence = $this->dataBaseInstance->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
         $placa="";
         if (count($carInGeofence) > 0) {
@@ -162,7 +162,7 @@ class DataStore
             $placa= $carInGeofence[0]['plate'];
           
         } else {
-            $sql = "Select cars.plate from cars where cars.device = ".$AVLElement->getImei()->getImeiNumber()." limit 1";
+            $sql = "Select cars.plate from cars where cars.device = ".$AVLElement->getImei()." limit 1";
             $carSearch = $this->dataBaseInstance->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
             if(count($carSearch)>0){
                 $placa = $carSearch[0]['plate'];
@@ -182,12 +182,12 @@ class DataStore
               
                 if(!$insideGeofence){
                     
-                   $this->enviarNotificacion(["imei"=>$AVLElement->getImei()->getImeiNumber(),"geofence_id"=>$geofenceId,"status"=>1,"is_office"=>$is_office, "plate"=>$placa,"geofence_name"=>$geofenceName]);
+                   $this->enviarNotificacion(["imei"=>$AVLElement->getImei(),"geofence_id"=>$geofenceId,"status"=>1,"is_office"=>$is_office, "plate"=>$placa,"geofence_name"=>$geofenceName]);
                 }
             }else{
                 if($insideGeofence &&  $geofenceInId == $geofenceId ){
                    
-                    $this->enviarNotificacion(["imei"=>$AVLElement->getImei()->getImeiNumber(),"geofence_id"=>$geofenceId, "status"=>0, "is_office"=>$is_office,"plate"=>$placa,"geofence_name"=>$geofenceName]);
+                    $this->enviarNotificacion(["imei"=>$AVLElement->getImei(),"geofence_id"=>$geofenceId, "status"=>0, "is_office"=>$is_office,"plate"=>$placa,"geofence_name"=>$geofenceName]);
                 }elseif($insideGeofence && $geofenceInId != $geofenceId){
 
                 }
@@ -202,7 +202,7 @@ class DataStore
             if($speedLimit!==false){
                 //Si la velocidad actual supera al limite de la carretera
                 if($speedLimit< $AVLElement->getGpsData()->getSpeed()){
-                    $this->enviarNotificacionVelocidad(["speed"=>$AVLElement->getGpsData()->getSpeed(), "imei"=>$AVLElement->getImei()->getImeiNumber()]);
+                    $this->enviarNotificacionVelocidad(["speed"=>$AVLElement->getGpsData()->getSpeed(), "imei"=>$AVLElement->getImei()]);
                 }
             }
                 
