@@ -16,7 +16,7 @@ use lbarrous\TeltonikaDecoder\Entities\ImeiNumber;
 class TeltonikaDecoderImp implements TeltonikaDecoder
 {
 
-    const HEX_DATA_LENGHT = 64;
+    const HEX_DATA_LENGHT = 130;
     const HEX_DATA_HEADER = 20;
 
     const CODEC8 = 8;
@@ -85,7 +85,7 @@ class TeltonikaDecoderImp implements TeltonikaDecoder
         $AVLArray = array();
 
         $hexDataWithoutCRC = substr($this->dataFromDevice, 0, -8);
-        $hexAVLDataArray = substr($hexDataWithoutCRC, self::HEX_DATA_HEADER);
+        //$hexAVLDataArray = substr($hexDataWithoutCRC, self::HEX_DATA_HEADER);
 
         $dataCount = $this->getNumberOfElements();
 
@@ -105,7 +105,7 @@ class TeltonikaDecoderImp implements TeltonikaDecoder
     }
 
     private function codec8Decode(string $hexDataOfElement) :AVLData {
-
+        
         $arrayElement = array();
 
         $AVLElement = new AVLData();
@@ -114,6 +114,7 @@ class TeltonikaDecoderImp implements TeltonikaDecoder
 
         //We only get first 10 characters to get timestamp up to seconds.
         $timestamp = substr(hexdec(substr($hexDataOfElement, 0, self::TIMESTAMP_HEX_LENGTH)), 0, 10);
+        
         $dateTimeWithoutFormat = new \DateTime();
         $dateTimeWithoutFormat->setTimestamp(intval($timestamp));
         $dateTimeWithFormat =  $dateTimeWithoutFormat->format('Y-m-d H:i:s') . "\n";
