@@ -108,11 +108,11 @@ class SocketServer
                         //Show output
                         echo json_encode($AVLArray);
                         echo "\n";
-                        fwrite($archivo, "Array Formateado: ".$AVLArray ."\n". PHP_EOL);
+                        fwrite($archivo, "Array Formateado: ".json_encode($AVLArray) ."\n". PHP_EOL);
 
                         $numerOfElementsReceived = $decoder->getNumberOfElements();
                         echo "Elements received: ".$numerOfElementsReceived."\n";
-                        fwrite($archivo, "Numero de elementos recibido: ".$AVLArray ."\n". PHP_EOL);
+                        fwrite($archivo, "Numero de elementos recibido: ".$numerOfElementsReceived ."\n". PHP_EOL);
                         foreach ($AVLArray as $AVLElement) {
                             $this->dataBase->storeDataFromDevice($AVLElement,$geofenceCoordinatesArray);
                         }
