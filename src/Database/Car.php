@@ -24,5 +24,17 @@ class Car
             "location" => $location,
             "device" => $imei
         ]);
+      
     }
+    public function getId($imei){
+        $car = $this->database->get("cars", "id", ["device" => $imei]);
+       
+        return $car;
+    }
+    
+    
+    
+    
+    
+    
 }

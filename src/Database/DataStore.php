@@ -42,9 +42,9 @@ class DataStore
     public function enviarNotificacion($datos){
         if($datos["status"]==1){
             
-            $contenido="El vehículo " .$datos["plate"]. " ha entrado en la geocerca Segunda Geo";
+            $contenido="El vehículo " .$datos["plate"]. " ha entrado en la geocerca " .$datos["geofence_name"]."";
         }else{
-            $contenido="El vehículo " .$datos["plate"]. " ha salido de la geocerca Segunda Geo";
+            $contenido="El vehículo " .$datos["plate"]. " ha salido de la geocerca " .$datos["geofence_name"]."";
         }
         $data = array(
             'imei' => $datos["imei"],
@@ -116,10 +116,11 @@ class DataStore
 
     public function storeDataFromDevice($AVLElement,$geofenceCoordinatesArray) {
 
-        $this->pointLocation = new pointLocation();
+        
         $device = new  Device($this->dataBaseInstance);
         //VERIFICAR SI EXISTE EL DEVICE
         $deviceExists = $device->checkIfImeiExists($AVLElement->getImei()->getImeiNumber());
+
         $car = new Car($this->dataBaseInstance);
 
         // SI EXISTE EL DISPOSITIVO
@@ -134,22 +135,40 @@ class DataStore
             $device->saveDevice($AVLElement->getImei()->getImeiNumber(),"-",0);
             $car->createCar($AVLElement->getImei()->getImeiNumber(), "Default", "Default", "123-abc", 2);
         }
+        //Obtener el Id del vehiculo para guardarlo con los datos del dispositivo
+        $carId = $car->getId($AVLElement->getImei()->getImeiNumber());
+        //Verificar y actualizar recorrido
+        $this->insertDistance($AVLElement);
+        //Mandar el insert
+        $this->insertGPSData($AVLElement,$carId);
+        //Verificar geocercas y enviar notificaciones
+        $this->checkGeofencesAndNotify($AVLElement, $geofenceCoordinatesArray);
+        // Verifica los límites de velocidad y envía notificaciones
+        $this->checkSpeedLimitsAndNotify($AVLElement);
+       
+    }
+    
+    public function insertGPSData($AVLElement,$carId) {
+               //LUEGO DE VERIFICAR O CREAR SE INSERTA LOS DATOS DEL GPS
+             
+               $this->dataBaseInstance->insert(
+                'gps_data_devices',
+                array(
+                    'imei' => $AVLElement->getImei()->getImeiNumber(),
+                    'car' => $carId,
+                    'longitude' => $AVLElement->getGpsData()->getLongitude(),
+                    'latitude' => $AVLElement->getGpsData()->getLatitude(),
+                    'altitude' => $AVLElement->getGpsData()->getAltitude(),
+                    'angle' => $AVLElement->getGpsData()->getAngle(),
+                    'satellites' => $AVLElement->getGpsData()->getSatellites(),
+                    'speed' => $AVLElement->getGpsData()->getSpeed(),
+                    'datetime' => $AVLElement->getDateTime(),
+                )
+            );
+    }
 
-        //LUEGO DE VERIFICAR O CREAR SE INSERTA LOS DATOS DEL GPS
-        $this->dataBaseInstance->insert(
-            'gps_data_devices',
-            array(
-                'imei' => $AVLElement->getImei()->getImeiNumber(),
-                'longitude' => $AVLElement->getGpsData()->getLongitude(),
-                'latitude' => $AVLElement->getGpsData()->getLatitude(),
-                'altitude' => $AVLElement->getGpsData()->getAltitude(),
-                'angle' => $AVLElement->getGpsData()->getAngle(),
-                'satellites' => $AVLElement->getGpsData()->getSatellites(),
-                'speed' => $AVLElement->getGpsData()->getSpeed(),
-                'datetime' => $AVLElement->getDateTime(),
-            )
-        );
-        
+    public function checkGeofencesAndNotify($AVLElement, $geofenceCoordinatesArray) {
+        $this->pointLocation = new pointLocation();
         $points = $AVLElement->getGpsData()->getLongitude() . " " . $AVLElement->getGpsData()->getLatitude();
        
         // Verificar si el vehículo se encuentra dentro de una geocerca
@@ -170,8 +189,7 @@ class DataStore
             $insideGeofence = false;
          
         }
-        
-        //recorrer las coordenadas para validar el IMEI
+
         foreach ($geofenceCoordinatesArray as $geofenceCoordinates) {
             $geofenceId = $geofenceCoordinates['id'];
             $geofenceName=$geofenceCoordinates["name"];
@@ -194,19 +212,51 @@ class DataStore
             
             }
         }
-        //Buscar el limite de velocidad
-        $speedLimit = $this->getSpeedLimitFromOverpass($AVLElement->getGpsData()->getLatitude(), $AVLElement->getGpsData()->getLongitude());
-        //Si no es 0 el valor
-        if($speedLimit!==0){
-            //si ha encontrado el limite de velocidad
-            if($speedLimit!==false){
-                //Si la velocidad actual supera al limite de la carretera
-                if($speedLimit< $AVLElement->getGpsData()->getSpeed()){
-                    $this->enviarNotificacionVelocidad(["speed"=>$AVLElement->getGpsData()->getSpeed(), "imei"=>$AVLElement->getImei()->getImeiNumber()]);
-                }
+    }
+
+    public function checkSpeedLimitsAndNotify($AVLElement) {
+        // Lógica para verificar límites de velocidad y enviar notificaciones
+         //Buscar el limite de velocidad
+         $speedLimit = $this->getSpeedLimitFromOverpass($AVLElement->getGpsData()->getLatitude(), $AVLElement->getGpsData()->getLongitude());
+         //Si no es 0 el valor
+         if($speedLimit!==0){
+             //si ha encontrado el limite de velocidad
+             if($speedLimit!==false){
+                 //Si la velocidad actual supera al limite de la carretera
+                 if($speedLimit< $AVLElement->getGpsData()->getSpeed()){
+                     $this->enviarNotificacionVelocidad(["speed"=>$AVLElement->getGpsData()->getSpeed(), "imei"=>$AVLElement->getImei()->getImeiNumber()]);
+                 }
+             }
+                 
+         }
+    }
+
+    public function insertDistance($AVLElement){
+         //VERIFICAR RECORRIDO
+         $sql = "SELECT latitude, longitude FROM gps_data_devices WHERE imei= ".$AVLElement->getImei()->getImeiNumber()."  ORDER BY datetime DESC LIMIT 1;";
+         $last_points = $this->dataBaseInstance->query($sql)->fetchAll(\PDO::FETCH_ASSOC);
+         if (!empty($last_points)) {
+            // La consulta encontró datos, ejecutar la lógica específica aquí
+            $last_latitude = $last_points[0]['latitude'];
+            $last_longitude = $last_points[0]['longitude'];
+            $new_latitude = $AVLElement->getGpsData()->getLatitude();
+            $new_longitude = $AVLElement->getGpsData()->getLongitude();
+ 
+            $recorrido_en_km = $this->calculateDistance($last_latitude, $last_longitude, $new_latitude, $new_longitude);
+            if($recorrido_en_km>0){
+                $this->dataBaseInstance->update(
+                    'devices', 
+                    [
+                    'millage[+]' => $recorrido_en_km
+                    ], 
+                    [
+                    'imei' => $AVLElement->getImei()->getImeiNumber()
+                    ]
+                );
             }
-                
-        }
+             
+            
+         } 
     }
 
     public function getGeofences(){
@@ -291,5 +341,23 @@ class DataStore
         
     }
 
+    function calculateDistance($lat1, $lon1, $lat2, $lon2) {
+        $earthRadius = 6371; // Radio de la Tierra en kilómetros
     
+        $dLat = deg2rad($lat2 - $lat1);
+        $dLon = deg2rad($lon2 - $lon1);
+    
+        $a = sin($dLat / 2) * sin($dLat / 2) + cos(deg2rad($lat1)) * cos(deg2rad($lat2)) * sin($dLon / 2) * sin($dLon / 2);
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+    
+        $distance = $earthRadius * $c; // Distancia en kilómetros en 2D (superficie terrestre)
+    
+        return $distance;
+    }
+    function getCarId(){
+        $car = new Car($this->dataBaseInstance);
+        $cars = $car->getId("350544502596904");
+        return $cars;
+    }
 }
+
