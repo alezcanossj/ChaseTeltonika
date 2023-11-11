@@ -141,7 +141,7 @@ class TeltonikaDecoderImp implements TeltonikaDecoder
         //priority
         $stringSplitter = self::TIMESTAMP_HEX_LENGTH;
        // $hexdate = substr($hexDataOfElement, $stringSplitter, self::PRIORITY_HEX_LENGTH);
-        fwrite($archivo, "Priority Hex: ".$hexdate."\n" . PHP_EOL);
+       // fwrite($archivo, "Priority Hex: ".$hexdate."\n" . PHP_EOL);
         $priority = hexdec(substr($hexDataOfElement, $stringSplitter, self::PRIORITY_HEX_LENGTH));
         //fwrite($archivo, "Priority Decodificada: ".$priority."\n" . PHP_EOL);
         $AVLElement->setPriority($priority);
@@ -214,19 +214,19 @@ class TeltonikaDecoderImp implements TeltonikaDecoder
         //IODATA 2
         $stringSplitter+= self::ELEMENTCOUNT_HEX_LENGTH+self::ELEMENT_COUNT_1B_HEX_LENGTH;
         $hexdate =substr($hexDataOfElement, $stringSplitter, self::ID_HEX_LENGTH);
-        fwrite($archivo, "Id Count Hex: ".$hexdate."\n" . PHP_EOL);
+       // fwrite($archivo, "Id Count Hex: ".$hexdate."\n" . PHP_EOL);
         $ID = hexdec(substr($hexDataOfElement, $stringSplitter, self::ID_HEX_LENGTH));
-        fwrite($archivo, "Id Count Decodificada: ".$ID."\n" . PHP_EOL);
+        //fwrite($archivo, "Id Count Decodificada: ".$ID."\n" . PHP_EOL);
         //IO ELEMENT DATA
         $stringSplitter+= self::ID_HEX_LENGTH;
         $hexdate =substr($hexDataOfElement, $stringSplitter, self::VALUE_HEX_LENGTH);
-        fwrite($archivo, "IO DATA Hex: ".$hexdate."\n" . PHP_EOL);
+       // fwrite($archivo, "IO DATA Hex: ".$hexdate."\n" . PHP_EOL);
         $value = hexdec(substr($hexDataOfElement, $stringSplitter, self::VALUE_HEX_LENGTH));
-        fwrite($archivo, "IO DATA: ".$value."\n" . PHP_EOL);
+        //fwrite($archivo, "IO DATA: ".$value."\n" . PHP_EOL);
         $IOElement = new Entities\IOData($eventID, $elementCount, $ID, $value);
 
         $AVLElement->setIOData($IOElement);
-        fwrite($archivo, "----------------------------------------------------------------------"."\n" . PHP_EOL);
+        //fwrite($archivo, "----------------------------------------------------------------------"."\n" . PHP_EOL);
         return $AVLElement;
       
     }
