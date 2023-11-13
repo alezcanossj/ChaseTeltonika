@@ -99,11 +99,6 @@ class TeltonikaDecoderImp implements TeltonikaDecoder
         $startPosition = self::HEX_DATA_HEADER;
         $this->endPosition = self::HEX_DATA_LENGHT;
 
-        if($totalNumberOfIo > 12){
-            $this->endPosition+=4;
-        }else if($totalNumberOfIo < 12){
-            $this->endPosition -=26;
-        }
        
         for($i=0; $i<$dataCount; $i++) {
         
@@ -199,18 +194,7 @@ class TeltonikaDecoderImp implements TeltonikaDecoder
         //fwrite($archivo, "Element Count Hex: ".$hexdate."\n" . PHP_EOL);
         $elementCount = hexdec(substr($hexDataOfElement, $stringSplitter, self::ELEMENTCOUNT_HEX_LENGTH));
         //fwrite($archivo, "ElementCount Decodificada: ".$elementCount."\n" . PHP_EOL);
-        $this->endPosition = self::HEX_DATA_LENGHT;
 
-        if($elementCount > 12){
-            $this->endPosition+=4;
-        }else if($elementCount < 12){
-            if($elementCount==9){
-                $this->endPosition -=46;
-            }else{
-                $this->endPosition -=26;
-            }
-            
-        }
         //IODATA 2
         $stringSplitter+= self::ELEMENTCOUNT_HEX_LENGTH+self::ELEMENT_COUNT_1B_HEX_LENGTH;
         $hexdate =substr($hexDataOfElement, $stringSplitter, self::ID_HEX_LENGTH);
